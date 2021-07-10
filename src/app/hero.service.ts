@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Hero } from './hero';
@@ -38,7 +38,13 @@ export class HeroService {
     };
   }
 
-  /** サーバーからデータを取得する */
+  httpOptions = {
+    headers: new HttpHeaders({ 'Content-Type': 'application/json'})
+  };
+
+  /** サーバーからデータを取得する 
+   * 配列データ取得のため<Hero[]>
+  */
   getHeroes(): Observable<Hero[]> {
     return this.http.get<Hero[]>(this.heroesUrl).pipe(
       tap(heroes => this.log('fetched heroes')),
@@ -46,12 +52,22 @@ export class HeroService {
     );
   }
 
-  /** IDよりデータを取得する。見つからなかった場合は404を返却する */
+  /** IDよりデータを取得する。見つからなかった場合は404を返却する 
+   * 単体データ取得のため、Observable<Hero>を返却
+  */
   getHero(id: number): Observable<Hero> {
     const url = `${this.heroesUrl}/${id}`;
     return this.http.get<Hero>(url).pipe(
       tap(_ => this.log(`fetched hero id=${id}`)),
       catchError(this.handleError<Hero>(`getHero id=${id}`))
+    );  }
+
+
+  /** PUT: サーバー上でデータを更新 */
+  updateHero(hero: Hero): Observable<any> {
+    return this.http.put(this.heroesUrl, hero, this.httpOptions).pipe(
+      tap(_ => this.log(`updated hero id=${hero.id}`)),
+      catchError(this.handleError<any>('updateHero'))
     );
   }
 }
